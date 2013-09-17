@@ -7,7 +7,7 @@ import java.net.URLClassLoader;
  * Class loader that loads a class from a byte array. This loader can load one
  * single class for which the binary class file is passed as constructor
  * argument.
- *
+ * 
  * @author Peter Verhas
  * 
  */
