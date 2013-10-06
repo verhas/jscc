@@ -40,4 +40,16 @@ public class CompilerTest {
 		String s = compiler.getCompilerErrorOutput();
 		Assert.assertNotNull(s);
 	}
+
+	@Test
+	public void given_PerfectSourceCodeWithSubClasses_when_CallingCompiler_then_ProperClassIsReturned()
+			throws Exception {
+		final String source = loadJavaSource("Test3.java");
+		Compiler compiler = new Compiler();
+		Class<?> newClass = compiler.compile(source, "com.javax0.jscc.Test3");
+		Object object = newClass.newInstance();
+		Method f = newClass.getMethod("method");
+		int i = (int) f.invoke(object, null);
+		Assert.assertEquals(1, i);
+	}
 }

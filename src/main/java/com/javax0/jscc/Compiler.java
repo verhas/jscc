@@ -2,8 +2,10 @@ package com.javax0.jscc;
 
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -71,7 +73,7 @@ public class Compiler {
 		Boolean compilationWasSuccessful = task.call();
 		if (compilationWasSuccessful) {
 			ByteClassLoader byteClassLoader = new ByteClassLoader(new URL[0],
-					classLoader, fm.getClassFile().getByteArray());
+					classLoader, classesByteArraysMap(fm));
 
 			Class<?> klass = byteClassLoader.loadClass(canonicalClassName);
 			byteClassLoader.close();
@@ -82,6 +84,15 @@ public class Compiler {
 		}
 	}
 
+	private Map<String,byte[]> classesByteArraysMap(MemoryJavaFileManager fm){
+		Map<String,byte[]>  map = new HashMap<String, byte[]>();
+		for( String name : fm.getClassFileObjectsMap().keySet() ){
+			MemoryFileObject mfo = fm.getClassFileObjectsMap().get(name);
+			map.put(name, mfo.getByteArray());
+		}
+		return map;
+	}
+	
 	public String getCompilerErrorOutput() {
 		return compilerErrorOutput;
 	}

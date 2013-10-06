@@ -9,17 +9,20 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
 
 public class MemoryFileObject implements JavaFileObject {
-
+	private static Logger LOG = LoggerFactory.getLogger(MemoryFileObject.class);
 	private final String name;
 	private final ByteArrayOutputStream fileBytesContent = new ByteArrayOutputStream();
 
 	public MemoryFileObject(final String name) {
+		LOG.debug("Creating MemoryFileObject({})",name);
 		this.name = name;
 	}
 
@@ -39,17 +42,18 @@ public class MemoryFileObject implements JavaFileObject {
 		return new ByteArrayInputStream(fileBytesContent.toByteArray());
 	}
 
-	public byte[] getByteArray(){
+	public byte[] getByteArray() {
 		return fileBytesContent.toByteArray();
 	}
-	
+
 	@Override
 	public OutputStream openOutputStream() throws IOException {
 		return fileBytesContent;
 	}
 
 	@Override
-	public Reader openReader(final boolean ignoreEncodingErrors) throws IOException {
+	public Reader openReader(final boolean ignoreEncodingErrors)
+			throws IOException {
 		return null;
 	}
 
