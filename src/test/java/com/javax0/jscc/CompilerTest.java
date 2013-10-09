@@ -34,7 +34,7 @@ public class CompilerTest {
 			throws Exception {
 		final String source = loadJavaSource("Test2.java");
 		Compiler compiler = new Compiler();
-		compiler.setClassLoader(this.getClass().getClassLoader());
+//		compiler.setClassLoader(this.getClass().getClassLoader());
 		Class<?> newClass = compiler.compile(source, "com.javax0.jscc.Test2");
 		Assert.assertNull(newClass);
 		String s = compiler.getCompilerErrorOutput();
