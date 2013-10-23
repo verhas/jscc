@@ -17,6 +17,9 @@ import javax.tools.ToolProvider;
  * code given in a String, generates the bytecode in memory and finally loads
  * the generated class, so that it can directly be instantiated and invoked
  * after the compiler returns.
+ * <p>
+ * Note that starting with version 1.0.1 classes that contain inner classes are
+ * also supported.
  * 
  * @author Peter Verhas
  * 
@@ -84,15 +87,27 @@ public class Compiler {
 		}
 	}
 
-	private Map<String,byte[]> classesByteArraysMap(MemoryJavaFileManager fm){
-		Map<String,byte[]>  map = new HashMap<String, byte[]>();
-		for( String name : fm.getClassFileObjectsMap().keySet() ){
-			MemoryFileObject mfo = fm.getClassFileObjectsMap().get(name);
-			map.put(name, mfo.getByteArray());
+	/**
+	 * Get the map of class name / class byte array from the file manager.
+	 * 
+	 * @param fileManager
+	 * @return
+	 */
+	private Map<String, byte[]> classesByteArraysMap(
+			MemoryJavaFileManager fileManager) {
+		Map<String, byte[]> map = new HashMap<String, byte[]>();
+		for (String name : fileManager.getClassFileObjectsMap().keySet()) {
+			map.put(name, fileManager.getClassFileObjectsMap().get(name)
+					.getByteArray());
 		}
 		return map;
 	}
-	
+
+	/**
+	 * 
+	 * @return null if the source was compiled fine or the textual output of the
+	 *         compiler when there was some error.
+	 */
 	public String getCompilerErrorOutput() {
 		return compilerErrorOutput;
 	}
