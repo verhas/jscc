@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class ByteClassLoader extends URLClassLoader {
-	private Map<String, byte[]> classFilesMap;
-	private static Logger LOG = LoggerFactory.getLogger(ByteClassLoader.class);
+	private final Map<String, byte[]> classFilesMap;
+	private static final Logger LOG = LoggerFactory.getLogger(ByteClassLoader.class);
 
 	/**
 	 * @param urls

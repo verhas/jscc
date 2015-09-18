@@ -1,11 +1,11 @@
 package com.javax0.jscc;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 public class CompilerTest {
 
@@ -34,7 +34,6 @@ public class CompilerTest {
 			throws Exception {
 		final String source = loadJavaSource("Test2.java");
 		Compiler compiler = new Compiler();
-//		compiler.setClassLoader(this.getClass().getClassLoader());
 		Class<?> newClass = compiler.compile(source, "com.javax0.jscc.Test2");
 		Assert.assertNull(newClass);
 		String s = compiler.getCompilerErrorOutput();

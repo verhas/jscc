@@ -95,7 +95,7 @@ public class Compiler {
 	 */
 	private Map<String, byte[]> classesByteArraysMap(
 			MemoryJavaFileManager fileManager) {
-		Map<String, byte[]> map = new HashMap<String, byte[]>();
+		Map<String, byte[]> map = new HashMap<>();
 		for (String name : fileManager.getClassFileObjectsMap().keySet()) {
 			map.put(name, fileManager.getClassFileObjectsMap().get(name)
 					.getByteArray());
