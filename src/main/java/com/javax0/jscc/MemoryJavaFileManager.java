@@ -15,22 +15,17 @@ import org.slf4j.LoggerFactory;
 
 public class MemoryJavaFileManager extends
 		ForwardingJavaFileManager<StandardJavaFileManager> {
-	private static Logger LOG = LoggerFactory
+	private static final Logger LOG = LoggerFactory
 			.getLogger(MemoryJavaFileManager.class);
 	private final Map<String, MemoryFileObject> classFilesMap;
 
 	protected MemoryJavaFileManager(final StandardJavaFileManager fileManager) {
 		super(fileManager);
-		classFilesMap = new HashMap<String, MemoryFileObject>();
+		classFilesMap = new HashMap<>();
 	}
 
 	public Map<String, MemoryFileObject> getClassFileObjectsMap() {
 		return classFilesMap;
-	}
-
-	@Override
-	public ClassLoader getClassLoader(final Location location) {
-		return super.getClassLoader(location);
 	}
 
 	@Override

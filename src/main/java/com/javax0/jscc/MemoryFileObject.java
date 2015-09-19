@@ -17,7 +17,7 @@ import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
 
 public class MemoryFileObject implements JavaFileObject {
-	private static Logger LOG = LoggerFactory.getLogger(MemoryFileObject.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MemoryFileObject.class);
 	private final String name;
 	private final ByteArrayOutputStream fileBytesContent = new ByteArrayOutputStream();
 
