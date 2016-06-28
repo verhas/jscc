@@ -7,7 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
 /**
@@ -26,89 +28,99 @@ import javax.tools.ToolProvider;
  */
 public class Compiler {
 
-	private ClassLoader classLoader = Compiler.class.getClassLoader();
+    private ClassLoader classLoader = Compiler.class.getClassLoader();
 
-	private String compilerErrorOutput = null;
+    private String compilerErrorOutput = null;
 
-	/**
-	 * Setting the parent class loader for the {@see ByteClassLoader} used to
-	 * load the compiled byte code. This is needed when there are different
-	 * class loaders in the application and the code compiling the class uses
-	 * different class loader than the code wanting to use the compiled class.
-	 * If no class loader is specified via this setter then the actual class
-	 * loader will be used, which may work for most of the cases.
-	 * 
-	 * @param classLoader
-	 */
-	public void setClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
+    DiagnosticCollector<JavaFileObject> diagnostics = null;
+
+    private Iterable<String> optionList = null;
+
+    /**
+     * Setting the parent class loader for the {@see ByteClassLoader} used to
+     * load the compiled byte code. This is needed when there are different
+     * class loaders in the application and the code compiling the class uses
+     * different class loader than the code wanting to use the compiled class.
+     * If no class loader is specified via this setter then the actual class
+     * loader will be used, which may work for most of the cases.
+     * 
+     * @param classLoader
+     */
+    public void setClassLoader(ClassLoader classLoader) {
+	this.classLoader = classLoader;
+    }
+
+    private String calculateSimpleClassName(String canonicalClassName) {
+	return canonicalClassName.substring(canonicalClassName.lastIndexOf('.') + 1);
+    }
+
+    /**
+     * Compile the Java code provided as a string and if the compilation was
+     * successful then load the class.
+     * 
+     * @param sourceCode
+     * @param canonicalClassName
+     *            the fully qualified name of the class
+     * @return the loaded class or null if the compilation was not successful
+     * @throws Exception
+     *             exceptions loading the class are not caught by the method
+     */
+    public Class<?> compile(String sourceCode, String canonicalClassName) throws Exception {
+	JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+	List<JavaSourceFromString> sources = new LinkedList<>();
+	String className = calculateSimpleClassName(canonicalClassName);
+	sources.add(new JavaSourceFromString(className, sourceCode));
+
+	StringWriter sw = null;
+	if (diagnostics == null) {
+	    sw = new StringWriter();
 	}
+	MemoryJavaFileManager fm = new MemoryJavaFileManager(compiler.getStandardFileManager(diagnostics, null, null));
+	JavaCompiler.CompilationTask task = compiler.getTask(sw, fm, diagnostics, optionList, null, sources);
 
-	private String calculateSimpleClassName(String canonicalClassName) {
-		return canonicalClassName
-				.substring(canonicalClassName.lastIndexOf('.') + 1);
+	Boolean compilationWasSuccessful = task.call();
+	if (compilationWasSuccessful) {
+	    ByteClassLoader byteClassLoader = new ByteClassLoader(new URL[0], classLoader, classesByteArraysMap(fm));
+
+	    Class<?> klass = byteClassLoader.loadClass(canonicalClassName);
+	    byteClassLoader.close();
+	    return klass;
 	}
-
-	/**
-	 * Compile the Java code provided as a string and if the compilation was
-	 * successful then load the class.
-	 * 
-	 * @param sourceCode
-	 * @param canonicalClassName
-	 *            the fully qualified name of the class
-	 * @return the loaded class or null if the compilation was not successful
-	 * @throws Exception
-	 *             exceptions loading the class are not caught by the method
-	 */
-	public Class<?> compile(String sourceCode, String canonicalClassName)
-			throws Exception {
-		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		List<JavaSourceFromString> sources = new LinkedList<>();
-		String className = calculateSimpleClassName(canonicalClassName);
-		sources.add(new JavaSourceFromString(className, sourceCode));
-
-		StringWriter sw = new StringWriter();
-		MemoryJavaFileManager fm = new MemoryJavaFileManager(
-				compiler.getStandardFileManager(null, null, null));
-		JavaCompiler.CompilationTask task = compiler.getTask(sw, fm, null,
-				null, null, sources);
-
-		Boolean compilationWasSuccessful = task.call();
-		if (compilationWasSuccessful) {
-			ByteClassLoader byteClassLoader = new ByteClassLoader(new URL[0],
-					classLoader, classesByteArraysMap(fm));
-
-			Class<?> klass = byteClassLoader.loadClass(canonicalClassName);
-			byteClassLoader.close();
-			return klass;
-		} else {
-			compilerErrorOutput = sw.toString();
-			return null;
-		}
+	if (sw != null) {
+	    compilerErrorOutput = sw.toString();
 	}
+	return null;
 
-	/**
-	 * Get the map of class name / class byte array from the file manager.
-	 * 
-	 * @param fileManager
-	 * @return
-	 */
-	private Map<String, byte[]> classesByteArraysMap(
-			MemoryJavaFileManager fileManager) {
-		Map<String, byte[]> map = new HashMap<>();
-		for (String name : fileManager.getClassFileObjectsMap().keySet()) {
-			map.put(name, fileManager.getClassFileObjectsMap().get(name)
-					.getByteArray());
-		}
-		return map;
-	}
+    }
 
-	/**
-	 * 
-	 * @return null if the source was compiled fine or the textual output of the
-	 *         compiler when there was some error.
-	 */
-	public String getCompilerErrorOutput() {
-		return compilerErrorOutput;
+    /**
+     * Get the map of class name / class byte array from the file manager.
+     * 
+     * @param fileManager
+     * @return
+     */
+    private Map<String, byte[]> classesByteArraysMap(MemoryJavaFileManager fileManager) {
+	Map<String, byte[]> map = new HashMap<>();
+	for (String name : fileManager.getClassFileObjectsMap().keySet()) {
+	    map.put(name, fileManager.getClassFileObjectsMap().get(name).getByteArray());
 	}
+	return map;
+    }
+
+    /**
+     * 
+     * @return null if the source was compiled fine or the textual output of the
+     *         compiler when there was some error.
+     */
+    public String getCompilerErrorOutput() {
+	return compilerErrorOutput;
+    }
+
+    public void setOptionList(Iterable<String> optionList) {
+	this.optionList = optionList;
+    }
+
+    public void setDiagnosticCollector(DiagnosticCollector<JavaFileObject> diagnostics) {
+	this.diagnostics = diagnostics;
+    }
 }
